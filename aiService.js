@@ -1,31 +1,29 @@
-import OpenAI from "openai";
-import "dotenv/config";
-
-if (!process.env.GROQ_API_KEY) {
-  throw new Error("GROQ_API_KEY missing in .env");
-}
-
-const client = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: "https://api.groq.com/openai/v1"
-});
+import axios from "axios";
 
 export async function getTravelPlan(prompt) {
   try {
-    const completion = await client.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "user",
-          content: prompt
+    const response = await axios.post(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        model: "llama-3.1-8b-instant",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          "Content-Type": "application/json"
         }
-      ],
-      temperature: 0.7
-    });
+      }
+    );
 
-    return completion.choices[0].message.content;
+    return response.data.choices[0].message.content;
   } catch (error) {
-    console.error("GROQ AI ERROR:", error.message);
+    console.error("AI SERVICE ERROR:", error.response?.data || error.message);
     throw error;
   }
 }
